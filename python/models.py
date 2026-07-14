@@ -37,10 +37,10 @@ from langchain.chat_models import init_chat_model
 # ═══ Default Models ══════════════════════════════════════════════════════════
 # Workshop default: Anthropic claude-haiku-4-5, fast and cost-effective.
 # Requires ANTHROPIC_API_KEY in .env
-model = init_chat_model("anthropic:claude-haiku-4-5")
+# model = init_chat_model("anthropic:claude-haiku-4-5")
 
 #A more capable model for steps that need stronger reasoning
-strong_model = init_chat_model("anthropic:claude-sonnet-4-6")
+# strong_model = init_chat_model("anthropic:claude-sonnet-4-6")
 
 # ═══ Alternative Models (comment out default above, uncomment one below) ═════
 # model = init_chat_model("anthropic:claude-sonnet-4-6")
@@ -101,4 +101,4 @@ strong_model = init_chat_model("anthropic:claude-sonnet-4-6")
 # Install first:  uv sync --extra google
 # Requires GOOGLE_API_KEY in .env
 #
-# model = init_chat_model("google_genai:gemini-2.5-flash")
+model = init_chat_model("google_genai:gemini-3.1-flash-lite")
