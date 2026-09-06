@@ -76,34 +76,11 @@ async def build_tools():
         }
     })
     tools = await client.get_tools()
-
-    ALLOWED = (
-        # Google Sheets Tools
-        "get_spreadsheet",
-        "get_values",
-        "read_values",
-        "update_values",
-        "write_values",
-        "append_values",
-        "clear_values",
-        "create_spreadsheet",
-        "update_formulas",
-        "insert_dimension",
-        "import_to_google_sheets",
-        "read_sheet_comments",
-        # Google Drive Tools
-        "search_drive_files",
-        "list_files",
-        "get_drive_file",
-        "read_file",
-        "create_drive_file",
-        "create_drive_folder",
-        "update_drive_file",
-        "copy_drive_file",
-        "manage_drive_access",
-        "delete_drive_file",
-    )
-    return [t for t in tools if t.name in ALLOWED]
+    ALLOWED = {}
+    return tools
+    
+    #ALLOWED = {"some_tool_name"}
+    #return [t for t in tools if t.name in ALLOWED]
     
 
 # ════════════════════════════════════════════════════════════════════════
@@ -111,20 +88,15 @@ async def build_tools():
 # not Lab 1's "what is MCP..." question.
 # ════════════════════════════════════════════════════════════════════════
 
-QUESTION = (
-    "Use Google Drive and Google Sheets tools to find my spreadsheets "
-    "and summarize the contents of the most recent one."
-)
+QUESTION = "TODO 2: replace with a question that puts your chosen tool(s) to work."
 
 
 async def main():
     tools = await build_tools()
-    print(f"Loaded {len(tools)} filtered tool(s):")
-    for t in tools:
-        print(f"  - {t.name}")
-    agent = create_deep_agent(model=model, tools=tools)
-    result = await agent.ainvoke({"messages": [{"role": "user", "content": QUESTION}]})
-    print(result["messages"][-1].content)
+    print(tools)
+    #agent = create_deep_agent(model=model, tools=tools)
+    #result = await agent.ainvoke({"messages": [{"role": "user", "content": QUESTION}]})
+    #print(result["messages"][-1].content)
 
 
 asyncio.run(main())
