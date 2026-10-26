@@ -1,4 +1,4 @@
-# python/m1/m1.6_homework.py
+# python/m1/m1.6_homework_local.py
 """M1.6 Homework: Connect to a Different MCP Server.
 
 THE IDEA
@@ -23,108 +23,101 @@ WHAT YOU FILL IN
 
 RUN
   cd python
-  uv run ./m1/m1.6_homework.py
+  uv run ./m1/m1.6_homework_local.py
 """
 
 import asyncio
-import warnings
 import os
+import warnings
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 from deepagents import create_deep_agent
 from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_mcp_adapters.tools import load_mcp_tools
 
 from models import model
 
+ALLOWED = {
+    # Google Sheets Tools
+    "list_spreadsheets",
+    "get_spreadsheet_info",
+    "read_sheet_values",
+    "create_spreadsheet",
+    "create_sheet",
+    "list_spreadsheet_comments",
+    "import_to_google_sheets",
+    # Google Drive Tools
+    "search_drive_files",
+    "get_drive_file_content",
+    "get_drive_file_download_url",
+    "list_drive_items",
+    "create_drive_file",
+    "create_drive_folder",
+    "update_drive_file",
+    "copy_drive_file",
+    "manage_drive_access",
+}
 
-# ════════════════════════════════════════════════════════════════════════
-# TODO 1: Build your MCP client and return its filtered tool list.
-#
-# Requirements:
-#   - Point "url" at a different public MCP server than Lab 1's
-#     docs-langchain server (no auth/API key required beyond what your
-#     labs already use). See the module docstring for two ready-to-use
-#     options.
-#   - Fetch tools with client.get_tools() and filter them the same way
-#     Lab 1 did, with an ALLOWED set.
-#
-# Example shape (delete this and write your own):
-#   async def build_tools():
-#       client = MultiServerMCPClient({
-#           "my-server": {"transport": "http", "url": "https://..."}
-#       })
-#       tools = await client.get_tools()
-#       ALLOWED = {"some_tool_name"}
-#       return [t for t in tools if t.name in ALLOWED]
-# ════════════════════════════════════════════════════════════════════════
-
-async def build_tools():
-    client = MultiServerMCPClient({
-        "google-workspace": {
-          "transport": "stdio",
-          "command": "uvx",
-          "args": [
-            "workspace-mcp",
-            "--tools", "sheets", "drive",
-          ],
-          "env": {
-            "PATH": os.environ.get("PATH", ""),
-            "GOOGLE_OAUTH_CLIENT_ID": os.environ.get("client_id", ""),
-            "GOOGLE_OAUTH_CLIENT_SECRET": os.environ.get("client_secret", ""),
-          }
-        }
-    })
-    tools = await client.get_tools()
-
-    ALLOWED = (
-        # Google Sheets Tools
-        "get_spreadsheet",
-        "get_values",
-        "read_values",
-        "update_values",
-        "write_values",
-        "append_values",
-        "clear_values",
-        "create_spreadsheet",
-        "update_formulas",
-        "insert_dimension",
-        "import_to_google_sheets",
-        "read_sheet_comments",
-        # Google Drive Tools
-        "search_drive_files",
-        "list_files",
-        "get_drive_file",
-        "read_file",
-        "create_drive_file",
-        "create_drive_folder",
-        "update_drive_file",
-        "copy_drive_file",
-        "manage_drive_access",
-        "delete_drive_file",
-    )
-    return [t for t in tools if t.name in ALLOWED]
-
-
-# ════════════════════════════════════════════════════════════════════════
-# TODO 2: Write a question suited to your chosen server's own domain,
-# not Lab 1's "what is MCP..." question.
-# ════════════════════════════════════════════════════════════════════════
+USER_EMAIL = os.environ.get("USER_GOOGLE_EMAIL", "dmitryt4@gmail.com")
 
 QUESTION = (
-    "Use Google Drive and Google Sheets tools to find my spreadsheets "
-    "and summarize the contents of the most recent one."
+    f"Use Google Drive and Google Sheets tools (for user {USER_EMAIL}) "
+    "to find the spreadsheet named 'סידור אפריל 2026' "
+    "and try to understand what it is about."
 )
 
 
+def build_client() -> MultiServerMCPClient:
+    return MultiServerMCPClient({
+        "google-workspace": {
+            "transport": "stdio",
+            "command": "uvx",
+            "args": [
+                "workspace-mcp",
+                "--single-user",
+                "--tools", "sheets", "drive",
+            ],
+            "env": {
+                **os.environ,
+                "PYTHONIOENCODING": "utf-8",
+                "USER_GOOGLE_EMAIL": USER_EMAIL,
+                "GOOGLE_OAUTH_CLIENT_ID": os.environ.get("GOOGLE_OAUTH_CLIENT_ID") or os.environ.get("client_id", ""),
+                "GOOGLE_OAUTH_CLIENT_SECRET": os.environ.get("GOOGLE_OAUTH_CLIENT_SECRET") or os.environ.get("client_secret", ""),
+            },
+        }
+    })
+
+
 async def main():
-    tools = await build_tools()
-    print(f"Loaded {len(tools)} filtered tool(s):")
-    for t in tools:
-        print(f"  - {t.name}")
-    agent = create_deep_agent(model=model, tools=tools)
-    result = await agent.ainvoke({"messages": [{"role": "user", "content": QUESTION}]})
-    print(result["messages"][-1].content)
+    client = build_client()
+
+    # Keep the stdio session open so localhost:8000 stays alive during OAuth
+    async with client.session("google-workspace") as session:
+        all_tools = await load_mcp_tools(session)
+        tools = [t for t in all_tools if t.name in ALLOWED]
+
+        print(f"Loaded {len(tools)} filtered tool(s):")
+        for t in tools:
+            print(f"  - {t.name}")
+
+        agent = create_deep_agent(model=model, tools=tools)
+        result = await agent.ainvoke({"messages": [{"role": "user", "content": QUESTION}]})
+
+        last_msg = str(result["messages"][-1].content)
+        if any(word in last_msg.lower() for word in ("authorize", "authentication", "oauth")):
+            print("\n--- Action Required ---")
+            print(last_msg)
+            input("\nComplete the Google login in your browser, then press ENTER to continue...")
+            result = await agent.ainvoke({
+                "messages": [
+                    *result["messages"],
+                    {"role": "user", "content": "Authorization is complete. Please proceed."},
+                ]
+            })
+
+        print("\n--- Response ---")
+        print(result["messages"][-1].content)
 
 
 if __name__ == "__main__":
