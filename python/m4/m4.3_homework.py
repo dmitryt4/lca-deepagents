@@ -78,7 +78,7 @@ def build_corpus() -> str:
     raise NotImplementedError("TODO 1: see the comment block above")
 
 
-CORPUS_PATH.write_text(build_corpus())
+CORPUS_PATH.write_text(build_corpus(), encoding="utf-8")
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -129,4 +129,4 @@ result = agent.invoke(
     },
     config={"recursion_limit": 100},
 )
-print(result["messages"][-1].content)
+print(result["messages"][-1].text)

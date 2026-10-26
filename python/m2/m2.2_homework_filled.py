@@ -17,7 +17,7 @@ recipe_dir.mkdir(exist_ok=True)
 
 Ingredients: 6 apples, 1 cup sugar, 2 tbsp cinnamon, double pie crust.
 Bake at 375F for 45 minutes.
-""")
+""", encoding="utf-8")
 
 # TODO 1 filled in
 backend = FilesystemBackend(root_dir=str(recipe_dir), virtual_mode=True)
@@ -47,4 +47,4 @@ result = agent.invoke(
     config={"configurable": {"thread_id": "homework-m2.2"}},
 )
 
-print(result["messages"][-1].content)
+print(result["messages"][-1].text)

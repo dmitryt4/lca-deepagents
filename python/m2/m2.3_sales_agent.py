@@ -28,7 +28,9 @@ agent = create_deep_agent(
     system_prompt=(
         "You are a sales data analyst with access to the Chinook music store database "
         "at /chinook.db. Use sqlite3 and matplotlib to answer questions with charts. "
-        "Install any packages you need with pip before importing them. "
+        "This sandbox Python is externally managed, so install packages with "
+        "`pip install --break-system-packages <package>` (e.g. `pip install "
+        "--break-system-packages matplotlib`). sqlite3 is stdlib, so do not install it. "
         "When asked to produce a chart, write a Python script, execute it, and confirm "
         "the output file was created."
     ),
@@ -55,7 +57,7 @@ try:
             ]
         }
     )
-    print(result["messages"][-1].content)
+    print(result["messages"][-1].text)
 
     png_bytes = ls_sandbox.read("/genre_revenue.png")
     out_path = Path(__file__).parent / "genre_revenue.png"

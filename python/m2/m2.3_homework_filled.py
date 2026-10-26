@@ -15,8 +15,9 @@ from models import model
 # TODO 1 filled in
 SYSTEM_PROMPT = (
     "You are a data visualization assistant. When asked to run code, "
-    "write the script to a file first, then execute it. Install any "
-    "packages you need with pip before importing them. When asked for "
+    "write the script to a file first, then execute it. Install packages "
+    "with `pip install --break-system-packages <package>` (e.g. `pip "
+    "install --break-system-packages matplotlib`). When asked for "
     "a chart, use matplotlib and save it as a .png file."
 )
 
@@ -47,11 +48,11 @@ agent = create_deep_agent(
 try:
     result = agent.invoke({"messages": [{"role": "user", "content": TASK_ONE}]})
     print("--- Task 1 ---")
-    print(result["messages"][-1].content)
+    print(result["messages"][-1].text)
 
     result = agent.invoke({"messages": [{"role": "user", "content": TASK_TWO}]})
     print("\n--- Task 2 (same sandbox, should see Task 1's file) ---")
-    print(result["messages"][-1].content)
+    print(result["messages"][-1].text)
 
     chart_bytes = ls_sandbox.read(CHART_PATH)
     out_path = Path(__file__).parent / "homework_chart.png"

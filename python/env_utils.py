@@ -111,7 +111,6 @@ try:
     EXTERNAL_IMPORTS_AVAILABLE = True
 except ImportError as e:
     EXTERNAL_IMPORTS_AVAILABLE = False
-    IMPORT_ERROR = e
     print("=" * 70)
     print("IMPORT ERROR DETECTED")
     print("=" * 70)
@@ -469,7 +468,7 @@ def doublecheck_pkgs(pyproject_path="pyproject.toml", verbose=False):
 
 if __name__ == "__main__":
     # Run early diagnostics FIRST (uses only standard library)
-    success, py_version, issues = check_python_executable_and_version()
+    _, py_version, issues = check_python_executable_and_version()
 
     # If external imports failed, exit with helpful message
     if not EXTERNAL_IMPORTS_AVAILABLE:
@@ -481,8 +480,9 @@ if __name__ == "__main__":
     check_venv()
     check_manual_installs(".env.example")
 
-    # Load environment variables from .env file
-    load_dotenv()
+    # override=True so .env wins over any same-named variable already
+    # exported in the shell, matching the other lesson scripts.
+    load_dotenv(override=True)
 
     # Check environment variables and API keys
     doublecheck_env(".env.example")

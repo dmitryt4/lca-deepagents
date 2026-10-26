@@ -1,7 +1,7 @@
 # python/m1/Practice/judge_card_practice_filled.py
-"""Personal reference copy of judge_card_practice.py with TODOs 1, 2, 3, 4,
-and 5 filled in so you can run it end to end and see what the finished
-practice exercise looks like."""
+"""Personal reference copy of judge_card_practice.py with TODOs 1 to 4 and
+the TODO 6 stretch goal filled in, so you can run it end to end and see
+what the finished practice exercise looks like."""
 
 from __future__ import annotations
 
@@ -79,7 +79,8 @@ organized answers as a thrilling character arc.""" + TOOL_SEQUENCE,
 @tool
 def score_and_match(answers: list[tuple[int, int, int]]) -> dict:
     """Tally the quiz answers into three 0-100 trait scores and pick a
-    matching LangChain product."""
+    matching LangChain product. Call this first, with the exact answers
+    list you were given."""
     scores = [50, 50, 50]
     for delta in answers:
         for i in range(3):
@@ -92,11 +93,19 @@ def score_and_match(answers: list[tuple[int, int, int]]) -> dict:
     return {"trait_scores": scores, "product": product}
 
 
-# No login, API key, or account needed here: docs.langchain.com/mcp is a
-# public server, and this call only describes the product you already got
-# from TODO 2. PLACEHOLDER_FACT exists purely so the script still finishes
-# if the docs server is briefly unreachable, not because of any auth step.
-PLACEHOLDER_FACT = "no real data connected yet: swap this for a real MCP-sourced fact"
+# TODO 3 filled in: run all four personas (three shipped + your_persona)
+JUDGES_TO_RUN = ["your_persona", "ancient_mummy", "salty_pirate", "savage_critic"]
+
+# TODO 4 filled in
+INTERRUPT_ON = {"post_card": True}
+
+# TODO 5 (optional) left as the default model
+MODEL = model
+
+
+# Returned if the docs server is unreachable. No login or API key needed:
+# docs.langchain.com/mcp is a public server.
+PLACEHOLDER_FACT = "No docs fact available. Base the verdict on the trait scores instead."
 
 
 async def _fetch_product_fact_async(product: str) -> str:
@@ -114,22 +123,19 @@ async def _fetch_product_fact_async(product: str) -> str:
             "the docs use an older or alternate name for it (e.g. 'Agent "
             f"Builder' for Fleet), write '{product}' instead, not that name."
         )}]})
-        return result["messages"][-1].content.strip()
+        return result["messages"][-1].text.strip()
     except Exception as exc:
         print(f"[product fact] falling back to placeholder ({exc})")
         return PLACEHOLDER_FACT
 
 
-# TODO 3 filled in
+# TODO 6 filled in (stretch goal)
 @tool
 def fetch_product_fact(product: str) -> str:
     """Look up one grounded, factual sentence about the LangChain product
-    you were matched with."""
+    you were matched with. Call this right after score_and_match, passing
+    in the product name it returned."""
     return asyncio.run(_fetch_product_fact_async(product))
-
-
-# TODO 4 filled in: run all four personas (three shipped + your_persona)
-JUDGES_TO_RUN = ["your_persona", "ancient_mummy", "salty_pirate", "savage_critic"]
 
 
 def build_user_prompt(answers: list[tuple[int, int, int]]) -> str:
@@ -151,8 +157,8 @@ if __name__ == "__main__":
             system_prompt=JUDGE_PERSONAS[judge_name],
             user_prompt=user_prompt,
             tools=[score_and_match, fetch_product_fact, render_card, post_card],
-            model=model,
-            interrupt_on={"post_card": True},  # TODO 5 filled in
+            model=MODEL,
+            interrupt_on=INTERRUPT_ON,
             thread_prefix="m1-practice-filled",
         )
     print(f"\nCards saved to {OUTPUT_DIR}/")

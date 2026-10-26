@@ -5,7 +5,7 @@ possible answer, so yours might be different. Explore!"""
 
 from deepagents import FilesystemPermission, create_deep_agent
 
-from models import model, strong_model
+from models import strong_model
 
 SCRATCH_ROOT = "/scratch"
 
@@ -109,7 +109,7 @@ result = agent.invoke(
     {"messages": [{"role": "user", "content": USER_REQUEST}]},
     config={"recursion_limit": 50},
 )
-print(result["messages"][-1].content)
+print(result["messages"][-1].text)
 
 files = result.get("files", {})
 print("\n--- Scratch folder isolation check ---")

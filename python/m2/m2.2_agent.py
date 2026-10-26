@@ -17,7 +17,7 @@ Responsibilities:
 - Look up customer accounts and purchase history
 - Recommend music based on genre and artist preferences
 - Answer questions about artists, albums, tracks, and invoices
-""")
+""", encoding="utf-8")
 
 agent = create_deep_agent(
     model=model,
@@ -54,4 +54,4 @@ result = agent.invoke(
     config={"configurable": {"thread_id": "lab-m2.2"}},
 )
 
-print(result["messages"][-1].content)
+print(result["messages"][-1].text)

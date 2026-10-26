@@ -48,7 +48,7 @@ Customer wants to know if there's a dark mode planned for the mobile app.
 """
 
 
-CORPUS_PATH.write_text(build_corpus())
+CORPUS_PATH.write_text(build_corpus(), encoding="utf-8")
 
 
 # TODO 2 filled in
@@ -68,7 +68,7 @@ billing problem, return is_billing_complaint: false."""
 exactly as "=== TICKET N ===".
 
 Run a workflow that reads the file, splits it into its individual tickets,
-and dispatches one section-scanner subagent call per ticket — never read a
+and dispatches one section-scanner subagent call per ticket. Never read a
 ticket's full text into your own context; let the interpreter hold the
 file, and let each subagent hold only its own ticket. Collect every
 subagent's findings into one final report listing only the tickets flagged
@@ -108,4 +108,4 @@ result = agent.invoke(
     },
     config={"recursion_limit": 100},
 )
-print(result["messages"][-1].content)
+print(result["messages"][-1].text)

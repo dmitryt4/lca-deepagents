@@ -92,8 +92,8 @@ def build_reference_md() -> str:
 _tmp_root = Path(tempfile.mkdtemp(prefix="m3_2_homework_"))
 _skill_dir = _tmp_root / "skills" / SKILL_NAME
 _skill_dir.mkdir(parents=True, exist_ok=True)
-(_skill_dir / "SKILL.md").write_text(build_skill_md())
-(_skill_dir / "reference.md").write_text(build_reference_md())
+(_skill_dir / "SKILL.md").write_text(build_skill_md(), encoding="utf-8")
+(_skill_dir / "reference.md").write_text(build_reference_md(), encoding="utf-8")
 
 backend = FilesystemBackend(root_dir=str(_tmp_root), virtual_mode=True)
 print(f"Skill files written to: {_skill_dir}")
@@ -120,7 +120,7 @@ agent = create_deep_agent(
 )
 
 result = agent.invoke({"messages": [{"role": "user", "content": USER_QUESTION}]})
-print(result["messages"][-1].content)
+print(result["messages"][-1].text)
 
 read_calls = [
     call

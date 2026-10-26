@@ -6,8 +6,9 @@ chinook-analyst's MemoryMiddleware needs the *same* filesystem backend the main
 agent uses (so the schema it discovers and the memory it reads point at the same
 file on disk).
 
-- chinook-analyst — owns the database; self-bootstraps the schema into its own
-  AGENTS.md; gates new-customer writes behind human approval.
+- chinook-analyst — owns the database; reads the schema from its own (pre-filled)
+  AGENTS.md and re-introspects it if it's missing or a name fails; gates
+  new-customer writes behind human approval.
 - inbox-manager   — owns the mail (MCP) tools; gates saving a draft behind
   human approval. Only present when mail tools were discovered.
 - quote-reviewer  — sanity-checks a drafted quote before it's sent.
@@ -33,6 +34,8 @@ from models import model, strong_model
 _APPROVE_EDIT_REJECT = {"allowed_decisions": ["approve", "edit", "reject"]}
 
 
+# The last paragraph is for weaker models, which tend to guess table names
+# (e.g. "invoices" for Invoice); it keeps them on schema-derived names.
 ANALYST_PROMPT = """You are the chinook-analyst, the data specialist for the \
 Chinook Sales Assistant. You are the only agent that touches the database.
 
@@ -40,7 +43,12 @@ Detailed operating instructions and the database schema live in your memory \
 (loaded automatically). Follow them. In short: answer with exact figures from \
 `query_chinook`, learn the schema once with `introspect_schema` and record it \
 in your memory, and use `add_customer` only when asked to add a genuinely new \
-customer (a human approves that write)."""
+customer (a human approves that write).
+
+Use only table and column names exactly as they appear in your memory or in \
+`introspect_schema` output. Chinook names are singular (`Invoice`, not \
+`invoices`). If a query fails with "no such table" or "no such column", \
+call `introspect_schema` and retry; never guess a name."""
 
 INBOX_PROMPT = """You are the inbox-manager, the email specialist for the \
 Chinook Sales Assistant. You own Jane's inbox and are the only agent that \
@@ -83,9 +91,9 @@ You will be given a single genre and a private research folder to work in.
 How to work:
 1. Use internet_search to find recent, noteworthy developments in that genre \
    — new releases, notable artists, trends, or events. Run a few searches.
-2. Save the COMPLETE, verbatim output of ALL your searches to a single file: \
-   write_file("/research/<genre>/sources.md", ...). Do NOT summarize or trim. \
-   This keeps the bulky material out of the editor's context.
+2. Save the COMPLETE, verbatim output of ALL your searches to a single file \
+   in the private folder you were given: write_file("<your folder>/sources.md", ...). \
+   Do NOT summarize or trim. This keeps the bulky material out of the editor's context.
 3. Only then, from what you found, write one tight newsletter segment.
 
 Return ONLY the finished segment as your reply:
