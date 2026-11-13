@@ -146,3 +146,6 @@ archive/
 .claude/
 thinkific/src/m3/m3.sketches.md
 python/m5/sales_assistant/agent_sandbox.py
+
+# Google service account keys (sheets agent)
+python/sheets/service_account*.json
